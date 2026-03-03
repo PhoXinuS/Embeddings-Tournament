@@ -21,6 +21,7 @@ It is important to state that there are two main architectures:
         Faster, less accurate, better for smaller datasets (?)
         
     - Skip-gram: predicts the context words based on one target word
+        context words <- target word -> context words
         Slower, more accurate with syntatic tasks
 
     CBOW:
@@ -29,9 +30,19 @@ It is important to state that there are two main architectures:
     - Projection layer: linear layer that averages the input vectors to create a single vector representation
     - Output later: a log-linear classifier predicting the middle word, using Hierarchical Softmax (according to the paper)
 
+    Skip-gram:
+    - Input layer: one-hot encoded vector of the target word
+    - Projection layer: linear layer that creates a single vector representation of the target word
+    - Output layer: lof-linear classifier that predicts words within a range before and after the target word
+        Once again it uses Hierarchical Softmax to evaluate the output layer
+    The context window in this example is choesen dynamically and selected randomly up to the maximum window size each way (ex. 5 in paper)
+
+    
 Also, the most important layer is actually a matrix of [embedding_dim X vocab_size]
-and then, when we input those 4 words as an index to the matrix, then we average them (projection)
+and then, in CBOW when we input those 4 words as an index to the matrix, then we average them (projection)
 this singualr word combination is used to predict the middle word by using softmax
+
+So yes, there are no non-linear functions in this model, it is just a linear dot product and then a softmax at the end
 
 
 4. Define:
@@ -44,3 +55,4 @@ this singualr word combination is used to predict the middle word by using softm
 5. Train the model for a specified number of epochs, updating the weights using the optimizer and backpropagation
 
 '''
+
