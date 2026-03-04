@@ -1,5 +1,9 @@
 '''
-pure numpy implementation
+=============
+Author notes:
+=============
+
+pure numpy implementation of classic word2vec
 
 https://arxiv.org/pdf/1301.3781
 https://arxiv.org/pdf/1310.4546
@@ -8,7 +12,7 @@ https://arxiv.org/pdf/1310.4546
 Algorithm Steps:
 
 1. Load the dataset and preprocess it
-    - Change every word to a unique intiger representation
+    - Change every word to a unique integer representation
     - Create Huffmann tree based on the frequency of words in the dataset
 
 2. Create the training data - method to be decided
@@ -74,6 +78,18 @@ class Word2VecDataset:
         self.huffman_root = None
         self.processed_corpus = []
 
+    def build_vocabulary(self):
+        pass
+
+    def build_huffman_tree(self):
+        pass
+
+    def subsample_frequent_words(self, subsampling_threshold):
+        pass
+
+    def generate_training_samples(self, max_window_size, architecture):
+        pass
+
 class Word2VecModel:
     def __init__(self, vocabulary_size, embedding_dimension, architecture="cbow"):
         self.vocabulary_size = vocabulary_size
@@ -90,25 +106,25 @@ class Word2VecModel:
         self.initial_learning_rate = 0.025 if architecture == "skip-gram" else 0.05
         self.current_learning_rate = self.initial_learning_rate
 
-    def forward_cbow(self):
+    def forward_cbow(self, context_word_indices):
         pass
 
-    def forward_skip_gram(self):
+    def forward_skip_gram(self, target_word_index):
         pass
 
-    def hierarchical_softmax(self):
+    def hierarchical_softmax(self, hidden_layer_representation, target_word_index):
         pass
 
-    def backward_pass(self):
+    def backward_pass(self, loss_gradient, hidden_layer_representation, target_index):
         pass
 
     def update_weights(self):
         pass
 
-    def update_learning_rate(self):
+    def update_learning_rate(self, current_word_count, total_word_count):
         pass
 
-    def compute_loss(self):
+    def compute_loss(self, predicted_probabilities, true_labels):
         pass
 
 def train_word2vec(raw_corpus, epochs, embedding_dimension, max_window_size, architecture="cbow"):
