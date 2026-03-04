@@ -56,3 +56,88 @@ So yes, there are no non-linear functions in this model, it is just a linear dot
 
 '''
 
+import numpy as np
+
+class HuffmanNode:
+    def __init__(self, frequency, word_index=None, left=None, right=None):
+        self.frequency = frequency
+        self.word_index = word_index
+        self.left = left
+        self.right = right
+
+class Word2VecDataset:
+    def __init__(self, raw_text_corpus):
+        self.raw_text_corpus = raw_text_corpus
+        self.word_to_index = {}
+        self.index_to_word = {}
+        self.word_frequencies = {}
+        self.huffman_root = None
+        self.processed_corpus = []
+
+class Word2VecModel:
+    def __init__(self, vocabulary_size, embedding_dimension, architecture="cbow"):
+        self.vocabulary_size = vocabulary_size
+        self.embedding_dimension = embedding_dimension
+        self.architecture = architecture
+        
+        self.input_embeddings = np.random.uniform(
+            -0.5 / embedding_dimension, 
+            0.5 / embedding_dimension, 
+            (vocabulary_size, embedding_dimension)
+        )
+        self.output_weights = np.zeros((vocabulary_size, embedding_dimension))
+        
+        self.initial_learning_rate = 0.025 if architecture == "skip-gram" else 0.05
+        self.current_learning_rate = self.initial_learning_rate
+
+    def forward_cbow(self):
+        pass
+
+    def forward_skip_gram(self):
+        pass
+
+    def hierarchical_softmax(self):
+        pass
+
+    def backward_pass(self):
+        pass
+
+    def update_weights(self):
+        pass
+
+    def update_learning_rate(self):
+        pass
+
+    def compute_loss(self):
+        pass
+
+def train_word2vec(raw_corpus, epochs, embedding_dimension, max_window_size, architecture="cbow"):
+    dataset = Word2VecDataset(raw_corpus)
+    dataset.build_vocabulary()
+    dataset.build_huffman_tree()
+    dataset.subsample_frequent_words(subsampling_threshold=1e-3)
+    
+    model = Word2VecModel(len(dataset.word_to_index), embedding_dimension, architecture)
+    
+    for epoch in range(epochs):
+        training_samples = dataset.generate_training_samples(max_window_size, architecture)
+        
+        for sample in training_samples:
+            if architecture == "cbow":
+                context_indices, target_index = sample
+                hidden_representation = model.forward_cbow(context_indices)
+            else:
+                target_index, context_indices = sample
+                hidden_representation = model.forward_skip_gram(target_index)
+            
+            model.backward_pass(
+                loss_gradient=None, 
+                hidden_layer_representation=hidden_representation,
+                context_indices=context_indices,
+                target_index=target_index
+            )
+            model.update_weights()
+            
+        model.update_learning_rate(current_word_count=0, total_word_count=1)
+        
+    return model
