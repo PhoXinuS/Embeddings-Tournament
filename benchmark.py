@@ -4,9 +4,8 @@ from scipy.stats import spearmanr
 from classic_w2v import train_word2vec
 
 # Settings
-CORPUS_MB, EMB_DIM, EPOCHS = 5, 100, 1
+CORPUS_MB, EMB_DIM, EPOCHS = 25, 100, 1
 EVAL_DIR = Path("eval_data")
-ANALOGY_URL = "https://raw.githubusercontent.com/nicholas-leonard/word2vec/master/questions-words.txt"
 WORDSIM_FILE = EVAL_DIR / "wordsim353/combined.tab"
 ANALOGY_FILE = EVAL_DIR / "questions-words.txt"
 

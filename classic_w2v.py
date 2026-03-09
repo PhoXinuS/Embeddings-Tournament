@@ -65,6 +65,7 @@ from collections import Counter
 import heapq
 import math
 import random
+import time
 
 class HuffmanNode:
     def __init__(self, frequency, word_index=None, left=None, right=None):
@@ -264,13 +265,17 @@ def train_word2vec(raw_corpus, epochs, embedding_dimension, max_window_size, arc
     dataset.subsample_frequent_words()
     
     model = Word2VecModel(len(dataset.word_to_index), embedding_dimension, dataset, architecture)
-    total_samples = len(dataset.processed_corpus) * epochs
-    processed_words = 0
     
+    training_samples = dataset.generate_training_samples(max_window_size, architecture)
+    total_samples = len(training_samples) * epochs
+    processed_words = 0
+
+    start_time = time.time()
+    percent_step = 5
+    next_percent = percent_step
+
     for epoch in range(epochs):
-        # Regenerate samples each epoch to ensure random dynamic window sizes
         training_samples = dataset.generate_training_samples(max_window_size, architecture)
-        
         for sample in training_samples:
             if architecture == "cbow":
                 context_indices, target_index = sample
@@ -282,10 +287,15 @@ def train_word2vec(raw_corpus, epochs, embedding_dimension, max_window_size, arc
                 model.backward_pass_and_update(hidden_representation, context_index, context_indices=target_index)
             
             processed_words += 1
-            # Update learning rate periodically rather than every single word for efficiency
             if processed_words % 1000 == 0:
                 model.update_learning_rate(processed_words, total_samples)
-                
+            
+            # Progress print every 5%
+            if processed_words >= (next_percent * total_samples // 100):
+                elapsed = time.time() - start_time
+                print(f"Trained {next_percent}% ({processed_words}/{total_samples}) - {elapsed:.1f}s elapsed")
+                next_percent += percent_step
+
     return model, dataset
 
 
