@@ -152,7 +152,7 @@ class Word2VecDataset:
         subsampled_corpus = []
         for word_idx in self.processed_corpus:
             frequency_fraction = self.word_frequencies[word_idx] / self.total_words
-            retention_probability = (math.sqrt(frequency_fraction / subsampling_threshold) + 1) * (subsampling_threshold / frequency_fraction)
+            retention_probability = min(1.0, math.sqrt(subsampling_threshold / frequency_fraction))
             
             if random.random() < retention_probability:
                 subsampled_corpus.append(word_idx)
@@ -263,11 +263,9 @@ def train_word2vec(raw_corpus, epochs, embedding_dimension, max_window_size, arc
     dataset.build_vocabulary()
     dataset.build_huffman_tree()
     dataset.subsample_frequent_words()
-    
+
     model = Word2VecModel(len(dataset.word_to_index), embedding_dimension, dataset, architecture)
-    
-    training_samples = dataset.generate_training_samples(max_window_size, architecture)
-    total_samples = len(training_samples) * epochs
+    total_samples = len(dataset.processed_corpus) * epochs
     processed_words = 0
 
     start_time = time.time()
@@ -275,22 +273,27 @@ def train_word2vec(raw_corpus, epochs, embedding_dimension, max_window_size, arc
     next_percent = percent_step
 
     for epoch in range(epochs):
-        training_samples = dataset.generate_training_samples(max_window_size, architecture)
-        for sample in training_samples:
-            if architecture == "cbow":
-                context_indices, target_index = sample
-                hidden_representation = model.forward_cbow(context_indices)
-                model.backward_pass_and_update(hidden_representation, target_index, context_indices=context_indices)
-            else:
-                target_index, context_index = sample
-                hidden_representation = model.forward_skip_gram(target_index)
-                model.backward_pass_and_update(hidden_representation, context_index, context_indices=target_index)
-            
+        for i, center_word in enumerate(dataset.processed_corpus):
             processed_words += 1
             if processed_words % 1000 == 0:
                 model.update_learning_rate(processed_words, total_samples)
-            
-            # Progress print every 5%
+
+            dynamic_window = random.randint(1, max_window_size)
+            start = max(0, i - dynamic_window)
+            end = min(len(dataset.processed_corpus), i + dynamic_window + 1)
+            context_words = dataset.processed_corpus[start:i] + dataset.processed_corpus[i+1:end]
+
+            if not context_words:
+                continue
+
+            if architecture == "cbow":
+                hidden = model.forward_cbow(context_words)
+                model.backward_pass_and_update(hidden, center_word, context_indices=context_words)
+            else:
+                hidden = model.forward_skip_gram(center_word)
+                for context_word in context_words:
+                    model.backward_pass_and_update(hidden, context_word, context_indices=center_word)
+
             if processed_words >= (next_percent * total_samples // 100):
                 elapsed = time.time() - start_time
                 print(f"Trained {next_percent}% ({processed_words}/{total_samples}) - {elapsed:.1f}s elapsed")
